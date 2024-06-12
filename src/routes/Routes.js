@@ -19,6 +19,7 @@ import Agenda from "../screens/appScreens/Agenda/Agenda";
 import Perfil from "../screens/appScreens/Perfil/Perfil";
 import Fonts from "../utils/Fonts";
 
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -26,7 +27,7 @@ export default function Routes() {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="RoutesTab" component={RoutesTab} />
+
       <Stack.Screen name="Splash" component={Splash} />
       <Stack.Screen name="OnBoarding" component={OnBoarding} />
       <Stack.Screen name="Login" component={Login} />
@@ -38,7 +39,7 @@ export default function Routes() {
       <Stack.Screen name="CadastroFuncionamento" component={CadastroFuncionamento} />
       <Stack.Screen name="CadastroServicos" component={CadastroServicos} />
       <Stack.Screen name="AlertScreen" component={AlertScreen} />
-
+      <Stack.Screen name="RoutesTab" component={RoutesTab} />
 
     </Stack.Navigator>
   );
