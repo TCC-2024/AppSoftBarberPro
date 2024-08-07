@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { View, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { onAuthStateChanged } from 'firebase/auth';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 import { auth } from '../../../config/firebaseConfig';
 import { colors } from '../../../utils/Colors';
 
@@ -22,8 +22,8 @@ export default function Splash({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <Image source={require('../../../assets/images/logosf.png')} style={styles.image} />
-            <ActivityIndicator size="large" color="#E60012" style={styles.loader} />
+            <Image source={require('../../../assets/images/logo.png')} style={styles.image} />
+            <ActivityIndicator size="large" color="#d0ac4b" style={styles.loader} />
         </View>
     );
 };

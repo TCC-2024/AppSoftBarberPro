@@ -1,5 +1,5 @@
-import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
+import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Fonts from '../../../utils/Fonts'
 
 
@@ -8,7 +8,7 @@ export default function OnBoarding({ navigation }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <View style={{ flex: 1 }}>
         <View style={[styles.container, { marginTop: 90 }]}>
-          <Image source={require('../../../assets/images/logosf.png')} style={styles.image} />
+          <Image source={require('../../../assets/images/logo.png')} style={styles.image} />
         </View>
       </View>
       <View style={{ marginBottom: 60 }}>
@@ -29,7 +29,7 @@ export default function OnBoarding({ navigation }) {
               <Text style={{ fontFamily: Fonts["poppins-bold"], color: '#fff', fontSize: 18, textAlign: 'center' }}>Login</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate("Cadastro")} style={{ paddingTop: 15 }}>
-              <Text style={{ fontFamily: Fonts['poppins-regular'], fontSize: 14, textAlign: 'center' }}>Não tem uma conta? <Text style={{ textDecorationLine: 'underline' }}>Cadastre-se</Text></Text>
+              <Text style={{ fontFamily: Fonts['poppins-regular'], fontSize: 14, textAlign: 'center' }}>Não tem uma conta? <Text style={{ textDecorationLine: 'underline', color: '#d0ac4b' }}>Cadastre-se</Text></Text>
             </TouchableOpacity>
           </View>
         </View>

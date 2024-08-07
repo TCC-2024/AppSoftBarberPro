@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { auth, db } from '../../../config/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Toast from 'react-native-toast-message';
+import { auth, db } from '../../../config/firebaseConfig';
 import Fonts from '../../../utils/Fonts';
 
 export default function CadastroFuncionamento({ navigation }) {

@@ -1,22 +1,22 @@
-import React from "react";
-import { StyleSheet, Platform } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
+import React from "react";
+import { Platform, StyleSheet } from "react-native";
 
-import Login from "../screens/authentication/Login/Login";
+import AlertScreen from "../components/AlertScreen";
+import Agenda from "../screens/appScreens/Agenda/Agenda";
+import Perfil from "../screens/appScreens/Perfil/Perfil";
 import Cadastro from "../screens/authentication/Cadastro/Cadastro";
-import OnBoarding from "../screens/authentication/OnBoarding/OnBoarding";
 import CadastroBarbearia from "../screens/authentication/Cadastro/CadastroBarbearia";
 import CadastroEndereco from "../screens/authentication/Cadastro/CadastroEndereco";
 import CadastroEquipe from "../screens/authentication/Cadastro/CadastroEquipe";
 import CadastroFuncionamento from "../screens/authentication/Cadastro/CadastroFuncionamento";
 import CadastroServicos from "../screens/authentication/Cadastro/CadastroServicos";
-import AlertScreen from "../components/AlertScreen";
-import Splash from "../screens/splashScreens/Splash/Splash";
+import Login from "../screens/authentication/Login/Login";
 import Recuperar from "../screens/authentication/Login/RecoverPdassword/Recuperar";
-import Agenda from "../screens/appScreens/Agenda/Agenda";
-import Perfil from "../screens/appScreens/Perfil/Perfil";
+import OnBoarding from "../screens/authentication/OnBoarding/OnBoarding";
+import Splash from "../screens/splashScreens/Splash/Splash";
 import Fonts from "../utils/Fonts";
 
 

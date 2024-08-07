@@ -1,18 +1,17 @@
+import { Ionicons } from "@expo/vector-icons";
+import { sendPasswordResetEmail } from "firebase/auth";
 import React, { useState } from "react";
 import {
     SafeAreaView,
     StyleSheet,
     Text,
     TextInput,
-    View,
     TouchableOpacity,
-    Alert,
+    View
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { sendPasswordResetEmail } from "firebase/auth";
+import Toast from 'react-native-toast-message';
 import { auth } from "../../../../config/firebaseConfig";
 import Fonts from "../../../../utils/Fonts";
-import Toast from 'react-native-toast-message';
 
 export default function Recuperar({ navigation }) {
     const [email, setEmail] = useState("");
