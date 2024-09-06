@@ -1,40 +1,68 @@
-import React from 'react';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { getAuth } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore'; // Assegure-se de ter a versão correta do Firebase SDK
+import React, { useEffect, useState } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import { db } from '../../../config/firebaseConfig';
 
 export default function Perfil() {
+  const [nomeUser, setNomeUser] = useState('');
+  const [emailUser, setEmailUser] = useState('');
+  const [telefoneUser, setTelefoneUser] = useState('');
+  const [image, setImage] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      const userDoc = doc(db, 'UsersBarbeiros', user.uid);
+
+      const unsubscribe = onSnapshot(userDoc, (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          setNomeUser(userData.nome);
+          setEmailUser(userData.email);
+          setTelefoneUser(userData.telefone);
+          setImage(userData.imageURL);
+          setLoading(false);
+        } else {
+          console.log('No such document!');
+          setLoading(false);
+        }
+      });
+
+      return () => unsubscribe();
+    } else {
+      setLoading(false); // Caso o usuário não esteja autenticado
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.profileHeader}>
-        <Image
-          style={styles.logo}
-        />
-        <Text style={styles.shopName}>Barbearia do João</Text>
+        {image ? (
+          <Image
+            source={{ uri: image }}
+            style={styles.logo}
+          />
+        ) : (
+          <View style={styles.logoPlaceholder} />
+        )}
+        <Text style={styles.shopName}>{nomeUser}</Text>
       </View>
       <View style={styles.profileInfo}>
         <Text style={styles.title}>Perfil do Estabelecimento</Text>
-        <Text style={styles.description}>
-          A Barbearia do João oferece cortes de cabelo e barba de alta qualidade. Nossos barbeiros são experientes e dedicados a proporcionar uma ótima experiência aos nossos clientes.
-        </Text>
-        <Text style={styles.subtitle}>Horário de Funcionamento</Text>
-        <Text style={styles.description}>
-          Segunda a Sexta: 09:00 - 19:00
-          {'\n'}
-          Sábado: 09:00 - 16:00
-          {'\n'}
-          Domingo: Fechado
-        </Text>
-        <Text style={styles.subtitle}>Localização</Text>
-        <Text style={styles.description}>
-          Rua das Barbas, 123 - Centro
-          {'\n'}
-          Cidade Bela, Estado XPTO
-        </Text>
-        <Text style={styles.subtitle}>Contato</Text>
-        <Text style={styles.description}>
-          Telefone: (XX) XXXX-XXXX
-          {'\n'}
-          Email: contato@barbeariadojoao.com
-        </Text>
+        <Text style={styles.description}>Email: {emailUser}</Text>
+        <Text style={styles.description}>Telefone: {telefoneUser}</Text>
       </View>
     </View>
   );
@@ -45,6 +73,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 20,
+    justifyContent: 'center', // Centraliza verticalmente
+    alignItems: 'center', // Centraliza horizontalmente
   },
   profileHeader: {
     alignItems: 'center',
@@ -54,6 +84,13 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     resizeMode: 'contain',
+    borderRadius: 75,
+  },
+  logoPlaceholder: {
+    width: 150,
+    height: 150,
+    backgroundColor: '#ddd',
+    borderRadius: 75,
   },
   shopName: {
     fontSize: 24,
@@ -61,17 +98,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   profileInfo: {
-    flex: 1,
+    alignItems: 'center', // Centraliza horizontalmente
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 10,
   },
   description: {
     fontSize: 16,

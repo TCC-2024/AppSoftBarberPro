@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../../config/firebaseConfig';
+import React, { useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { auth } from '../../../config/firebaseConfig';
 import Fonts from '../../../utils/Fonts';
 
 export default function Login({ navigation }) {
@@ -105,7 +105,7 @@ export default function Login({ navigation }) {
 
         <TouchableOpacity onPress={handleLogin} style={{
           padding: 12,
-          backgroundColor: '#000',
+          backgroundColor: '#d0ac4b',
           marginVertical: 30,
           borderRadius: 10,
         }}>

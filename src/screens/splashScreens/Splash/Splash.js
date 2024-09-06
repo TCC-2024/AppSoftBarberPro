@@ -23,7 +23,7 @@ export default function Splash({ navigation }) {
     return (
         <View style={styles.container}>
             <Image source={require('../../../assets/images/logo.png')} style={styles.image} />
-            <ActivityIndicator size="large" color="#d0ac4b" style={styles.loader} />
+            <ActivityIndicator size="large" color="#CA974b" style={styles.loader} />
         </View>
     );
 };
