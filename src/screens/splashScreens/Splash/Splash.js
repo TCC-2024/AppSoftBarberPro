@@ -2,10 +2,9 @@ import { onAuthStateChanged } from 'firebase/auth';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 import { auth } from '../../../config/firebaseConfig';
-import { colors } from '../../../utils/Colors';
+
 
 export default function Splash({ navigation }) {
-
     useEffect(() => {
         const timeout = setTimeout(() => {
             const unsubscribe = onAuthStateChanged(auth, user => {
@@ -33,7 +32,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: colors.white,
+        backgroundColor: "#fff",
     },
     image: {
         width: 450,
