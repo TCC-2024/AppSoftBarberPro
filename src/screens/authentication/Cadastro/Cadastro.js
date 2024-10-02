@@ -173,7 +173,7 @@ export default function Cadastro({ navigation }) {
         </View>
         <TouchableOpacity onPress={handleCadastro} style={{
           padding: 12,
-          backgroundColor: '#000',
+          backgroundColor: '#d0ac4b',
           marginVertical: 30,
           borderRadius: 10,
         }}>
