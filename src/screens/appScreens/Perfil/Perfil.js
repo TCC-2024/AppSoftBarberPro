@@ -7,6 +7,7 @@ export default function Perfil() {
       <View style={styles.profileHeader}>
         <Image
           style={styles.logo}
+          source={{ uri: 'https://example.com/logo.png' }} // Adicione a URL da imagem
         />
         <Text style={styles.shopName}>Barbearia do João</Text>
       </View>
@@ -43,12 +44,19 @@ export default function Perfil() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f7f7f7',
     padding: 20,
   },
   profileHeader: {
     alignItems: 'center',
     marginBottom: 20,
+    backgroundColor: '#f0d28f', // Dourado claro
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   logo: {
     width: 150,
@@ -59,22 +67,33 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginTop: 10,
+    color: '#3a3a3a', // Cor do texto
   },
   profileInfo: {
     flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#3a3a3a',
   },
   subtitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 10,
+    color: '#3a3a3a',
   },
   description: {
     fontSize: 16,
     marginBottom: 10,
+    color: '#5a5a5a', // Cor do texto
   },
 });
