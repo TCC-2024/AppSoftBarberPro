@@ -25,7 +25,7 @@ export default function OnBoarding({ navigation }) {
             Aproveite todas as oportunidades para fazer das suas barbearias destaques em atendimento e estilo.
           </Text>
           <View style={{ paddingHorizontal: 10 * 1, paddingTop: 10 * 3 }}>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")} style={{ backgroundColor: '#000', padding: 6 * 2.0, borderRadius: 10 }}>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")} style={{ backgroundColor: '#d0ac4b', padding: 6 * 2.0, borderRadius: 10 }}>
               <Text style={{ fontFamily: Fonts["poppins-bold"], color: '#fff', fontSize: 18, textAlign: 'center' }}>Login</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate("Cadastro")} style={{ paddingTop: 15 }}>
