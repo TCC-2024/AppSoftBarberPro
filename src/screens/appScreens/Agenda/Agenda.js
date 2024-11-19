@@ -2,149 +2,212 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
+  StyleSheet,
   FlatList,
-  TextInput,
-  Image,
+  Modal,
   ScrollView,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { useNavigation } from "@react-navigation/native";
 
-export default function Calendario() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [events, setEvents] = useState([]);
-  const navigation = useNavigation();
+export default function Agenda({ navigation }) {
+  const [selectedDate, setSelectedDate] = useState(""); // Data selecionada no calendário
+  const [selectedAppointment, setSelectedAppointment] = useState(null); // Dados do agendamento selecionado
+  const [isModalVisible, setModalVisible] = useState(false); // Controle do modal
 
-  const data = [
-    { id: '1', name: 'Calendário', route: 'calendário' },
-    { id: '2', name: 'Perfil', route: 'perfil' },
-    { id: '3', name: 'Home', route: 'home' },
-    { id: '4', name: 'Adote', route: 'adote' },
-    { id: '5', name: 'Adicionar Pet', route: 'AdicionarPet' },
-    { id: '6', name: 'Meus Pets', route: 'Pets' },
-    { id: '7', name: 'Chats', route: 'ChatList' },
+  const appointments = [
+    {
+      id: "1",
+      date: "2024-11-20",
+      time: "08:00",
+      client: "João Silva",
+      service: "Corte de Cabelo",
+      price: "R$ 50,00",
+    },
+    {
+      id: "2",
+      date: "2024-11-20",
+      time: "13:00",
+      client: "André Oliveira",
+      service: "Barba e Corte",
+      price: "R$ 70,00",
+    },
+    {
+      id: "3",
+      date: "2024-11-21",
+      time: "18:00",
+      client: "Pedro Santos",
+      service: "Corte de Cabelo",
+      price: "R$ 60,00",
+    },
   ];
 
-  const filteredData = data.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const appointmentsByDate = appointments.filter(
+    (appointment) => appointment.date === selectedDate
   );
 
-  const handleNavigation = (route) => {
-    navigation.navigate(route);
+  const openModal = (appointment) => {
+    setSelectedAppointment(appointment);
+    setModalVisible(true);
   };
 
-  const handleDayPress = (day) => {
-    // Ações a serem realizadas ao pressionar um dia, se necessário
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedAppointment(null);
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.topContainer}>
-        <TextInput
-          placeholder="Buscar..."
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-          style={styles.searchInput}
-        />
-      </View>
-      {searchTerm.length > 0 && (
+      <Text style={styles.title}>Meus Agendamentos</Text>
+
+      {/* Calendário */}
+      <Calendar
+        onDayPress={(day) => setSelectedDate(day.dateString)}
+        markedDates={{
+          [selectedDate]: { selected: true, selectedColor: "#D0AC4B" },
+        }}
+        theme={{
+          todayTextColor: "#D0AC4B",
+          selectedDayBackgroundColor: "#D0AC4B",
+          arrowColor: "#D0AC4B",
+        }}
+      />
+
+      {/* Lista de agendamentos para a data selecionada */}
+      {selectedDate && appointmentsByDate.length > 0 ? (
         <FlatList
-          data={filteredData}
-          keyExtractor={item => item.id}
+          data={appointmentsByDate}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.suggestionItem}
-              onPress={() => handleNavigation(item.route)}
+              style={styles.appointmentItem}
+              onPress={() => openModal(item)}
             >
-              <Text style={styles.suggestionText}>{item.name}</Text>
+              <Text style={styles.clientName}>{item.client}</Text>
+              <Text style={styles.appointmentDateTime}>
+                {item.time} - {item.service}
+              </Text>
             </TouchableOpacity>
           )}
         />
+      ) : (
+        <Text style={styles.noAppointments}>
+          {selectedDate
+            ? "Nenhum agendamento para essa data."
+            : "Selecione uma data no calendário."}
+        </Text>
       )}
-      <Calendar
-        onDayPress={handleDayPress}
-        markedDates={{}} // Marcar datas conforme necessário
-        theme={{
-          arrowColor: "#593C9D",
-          monthTextColor: "#593C9D",
-          textSectionTitleColor: "#593C9D",
-          selectedDayBackgroundColor: "#593C9D",
-          todayTextColor: "#593C9D",
-          textDayFontWeight: "bold",
-          textMonthFontWeight: "bold",
-          textDayHeaderFontSize: 14,
-          textMonthFontSize: 16,
-        }}
-      />
-      <FlatList
-        data={events}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.eventContainer}>
-            <Text style={styles.eventText}>{item.type} - {item.date}</Text>
+
+      {/* Modal para exibir informações detalhadas */}
+      {selectedAppointment && (
+        <Modal
+          visible={isModalVisible}
+          animationType="slide"
+          transparent={true}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Detalhes do Agendamento</Text>
+              <ScrollView>
+                <Text style={styles.modalText}>
+                  Cliente: {selectedAppointment.client}
+                </Text>
+                <Text style={styles.modalText}>
+                  Serviço: {selectedAppointment.service}
+                </Text>
+                <Text style={styles.modalText}>
+                  Data: {selectedAppointment.date}
+                </Text>
+                <Text style={styles.modalText}>
+                  Hora: {selectedAppointment.time}
+                </Text>
+                <Text style={styles.modalText}>
+                  Valor: {selectedAppointment.price}
+                </Text>
+              </ScrollView>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={closeModal}
+              >
+                <Text style={styles.closeButtonText}>Fechar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
-        contentContainerStyle={[styles.eventList, { paddingBottom: 90 }]}
-        ListHeaderComponent={
-          <View style={styles.headerContainer}>
-            <Text style={styles.listHeader}>Seus Eventos</Text>
-          </View>
-        }
-      />
+        </Modal>
+      )}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f4f4f4",
+    padding: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginVertical: 20,
+    textAlign: "center",
+  },
+  appointmentItem: {
     backgroundColor: "#fff",
-  },
-  topContainer: {
-    width: '100%',
-    height: 100,
-    backgroundColor: '#593C9D',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingHorizontal: 15,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    marginLeft: 5,
-    marginTop: 25,
-  },
-  suggestionItem: {
-    backgroundColor: "#EEE",
-    padding: 10,
-    borderRadius: 8,
-    marginVertical: 5,
-    marginHorizontal: 10,
-  },
-  eventContainer: {
     padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 2,
+    marginVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#D0AC4B",
+    elevation: 4,
   },
-  eventText: {
+  clientName: {
     fontSize: 16,
+    fontWeight: "bold",
     color: "#333",
   },
-  listHeader: {
-    fontSize: 22,
-    color: "#593C9D",
-    marginLeft: 10,
+  appointmentDateTime: {
+    fontSize: 14,
+    color: "#666",
+  },
+  noAppointments: {
+    textAlign: "center",
+    color: "#666",
+    marginTop: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    width: "90%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 8,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 15,
+  },
+  modalText: {
+    fontSize: 16,
+    marginVertical: 5,
+    color: "#333",
+  },
+  closeButton: {
+    backgroundColor: "#D0AC4B",
+    padding: 10,
+    marginTop: 20,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
-

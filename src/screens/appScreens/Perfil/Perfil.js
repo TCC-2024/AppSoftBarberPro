@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { auth, db } from '../../../config/firebaseConfig';
+import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
 
-// Componente InfoBox para modularizar as caixas de informações
 const InfoBox = ({ icon, label, onPress }) => (
   <TouchableOpacity style={styles.infoBox} onPress={onPress}>
     {icon}
@@ -14,22 +15,119 @@ const InfoBox = ({ icon, label, onPress }) => (
 export default function BarbeariaPerfil({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState('');
+  const [avaliacoes, setAvaliacoes] = useState([]);
+  const [enderecos, setEnderecos] = useState([]);
+  const [horarios, setHorarios] = useState([]);
+  const [servicos, setServicos] = useState([]);
+  const [userId, setUserId] = useState(null);
 
-  const barbeariaInfo = {
-    nome: "Nome da Barbearia",
-    descricao: "A melhor barbearia da cidade, com serviços exclusivos para você.",
-    fotoPerfil: 'https://link-da-imagem-do-perfil.com', // Link da foto do perfil
+  const [barbeariaInfo, setBarbeariaInfo] = useState({
+    nome: '',
+    descricao: '',
+    fotoPerfil: ''
+  });
+
+  useEffect(() => {
+    const user = auth.currentUser; // Autenticação atual
+    if (user) {
+      setUserId(user.uid); // Atribui o userId após o login
+    }
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      // Buscar avaliações
+      const unsubscribeAvaliacoes = onSnapshot(
+        query(collection(db, 'Avaliacoes'), where('barbeariaId', '==', userId)),
+        (querySnapshot) => {
+          const avaliacoesData = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setAvaliacoes(avaliacoesData);
+        }
+      );
+
+      // Buscar endereços
+      const unsubscribeEnderecos = onSnapshot(
+        query(collection(db, 'CadastroEndereço'), where('barbeariaId', '==', userId)),
+        (querySnapshot) => {
+          const enderecosData = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setEnderecos(enderecosData);
+        }
+      );
+
+      // Buscar serviços
+      const unsubscribeServicos = onSnapshot(
+        query(collection(db, 'CadastroServiços'), where('barbeariaId', '==', userId)),
+        (querySnapshot) => {
+          const servicosData = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setServicos(servicosData);
+        }
+      );
+
+      // Buscar horários
+      const unsubscribeHorarios = onSnapshot(
+        query(collection(db, 'CadastroHorarios'), where('barbeariaId', '==', userId)),
+        (querySnapshot) => {
+          const horariosData = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setHorarios(horariosData);
+        }
+      );
+
+      return () => {
+        unsubscribeAvaliacoes();
+        unsubscribeEnderecos();
+        unsubscribeServicos();
+        unsubscribeHorarios();
+      };
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    const fetchBarbeariaData = async () => {
+      const user = auth.currentUser; // Autenticação atual
+      if (user) {
+        const barbeariaDoc = doc(db, "CadastroBarbearia", user.uid); // Substitua por sua coleção e estrutura de documentos
+        const unsubscribe = onSnapshot(barbeariaDoc, (doc) => {
+          if (doc.exists()) {
+            const barbeariaData = doc.data();
+            setBarbeariaInfo({
+              nome: barbeariaData.nomebarbeariacadastro || 'Nome não disponível',
+              descricao: barbeariaData.sobre || 'Descrição não disponível',
+              fotoPerfil: barbeariaData.fotoPerfil || 'https://via.placeholder.com/120',
+            });
+          } else {
+            console.log("No such document!");
+          }
+        });
+        return () => unsubscribe();
+      }
+    };
+
+    fetchBarbeariaData();
+  }, []);
+
+  const handleModalOpen = (content) => {
+    setModalContent(content);  // Define o tipo de conteúdo do modal
+    setModalVisible(true);     // Torna o modal visível
   };
 
-  // Função para abrir o modal com informações específicas
-  const handleModalOpen = (content) => {
-    setModalContent(content);
-    setModalVisible(true);
+  const handleModalClose = () => {
+    setModalVisible(false);    // Fecha o modal
   };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header com seta para voltar e Foto de Perfil */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.voltarButton}>
           <Ionicons name="arrow-back" size={30} color="#000" />
@@ -40,50 +138,46 @@ export default function BarbeariaPerfil({ navigation }) {
             style={styles.profileImage}
           />
           <TouchableOpacity style={styles.cameraIconContainer}>
-            <Ionicons name="camera" size={35} color="#000" /> {/* Ícone centralizado com o tamanho adequado */}
+            <Ionicons name="camera" size={35} color="#000" />
           </TouchableOpacity>
         </View>
         <Text style={styles.nome}>{barbeariaInfo.nome}</Text>
-        {/* Descrição */}
         <Text style={styles.descricao}>{barbeariaInfo.descricao}</Text>
       </View>
 
-      {/* Caixas de Informações */}
       <View style={styles.infoContainer}>
         <InfoBox
           icon={<Ionicons name="location-outline" size={24} color="#D0AC4B" />}
           label="Localização"
-          onPress={() => handleModalOpen('Informações sobre a Localização')}
+          onPress={() => handleModalOpen('Localização')}
         />
         <InfoBox
           icon={<Ionicons name="star-outline" size={24} color="#D0AC4B" />}
           label="Avaliação"
-          onPress={() => handleModalOpen('Informações sobre Avaliação')}
+          onPress={() => handleModalOpen('Avaliações')}
         />
         <InfoBox
           icon={<Ionicons name="time-outline" size={24} color="#D0AC4B" />}
           label="Horário"
-          onPress={() => handleModalOpen('Informações sobre o Horário de Funcionamento')}
+          onPress={() => handleModalOpen('Horários')}
         />
         <InfoBox
           icon={<FontAwesome5 name="cut" size={24} color="#D0AC4B" />}
           label="Serviços"
-          onPress={() => handleModalOpen('Lista de Serviços oferecidos pela barbearia')}
+          onPress={() => handleModalOpen('Serviços')}
         />
-        {/* Nova categoria: Fotos */}
         <InfoBox
           icon={<Ionicons name="image-outline" size={24} color="#D0AC4B" />}
           label="Fotos"
-          onPress={() => handleModalOpen('Galeria de fotos da barbearia')}
+          onPress={() => handleModalOpen('Fotos')}
         />
       </View>
 
-      {/* Botão de Agendamento */}
       <TouchableOpacity
         style={styles.botaoAgendar}
         onPress={() => navigation.navigate('AgendarHorario')}
       >
-        <Text style={styles.botaoTexto}>Agendar um Horário</Text>
+        <Text style={styles.botaoTexto}>SAIR</Text>
       </TouchableOpacity>
 
       {/* Modal */}
@@ -91,12 +185,42 @@ export default function BarbeariaPerfil({ navigation }) {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={handleModalClose}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalText}>{modalContent}</Text>
-            <Pressable style={styles.closeButton} onPress={() => setModalVisible(false)}>
+            <Text style={styles.modalTitle}>{modalContent}</Text>
+            <ScrollView>
+              {modalContent === 'Avaliações' && avaliacoes.length > 0 ? (
+                avaliacoes.map((avaliacao) => (
+                  <View key={avaliacao.id} style={styles.modalItem}>
+                    <Text>{avaliacao.avaliacao}</Text>
+                    <Text>{avaliacao.comentario}</Text>
+                  </View>
+                ))
+              ) : modalContent === 'Localização' && enderecos.length > 0 ? (
+                enderecos.map((endereco) => (
+                  <View key={endereco.id} style={styles.modalItem}>
+                    <Text>{endereco.rua}</Text>
+                  </View>
+                ))
+              ) : modalContent === 'Serviços' && servicos.length > 0 ? (
+                servicos.map((servico) => (
+                  <View key={servico.id} style={styles.modalItem}>
+                    <Text>{servico.servico}</Text>
+                  </View>
+                ))
+              ) : modalContent === 'Horários' && horarios.length > 0 ? (
+                horarios.map((horario) => (
+                  <View key={horario.id} style={styles.modalItem}>
+                    <Text>{horario.horario}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noDataText}>Sem dados disponíveis.</Text>
+              )}
+            </ScrollView>
+            <Pressable style={styles.closeButton} onPress={handleModalClose}>
               <Text style={styles.closeButtonText}>Fechar</Text>
             </Pressable>
           </View>
@@ -105,6 +229,7 @@ export default function BarbeariaPerfil({ navigation }) {
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -183,7 +308,7 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
   },
   botaoAgendar: {
-    backgroundColor: '#D0AC4B', // Dourado para o botão
+    backgroundColor: 'red', // Dourado para o botão
     padding: 15,
     borderRadius: 10,
     marginTop: 20,
