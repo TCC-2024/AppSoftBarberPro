@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,38 +9,38 @@ import {
   ScrollView,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../../config/firebaseConfig";
 
 export default function Agenda({ navigation }) {
   const [selectedDate, setSelectedDate] = useState(""); // Data selecionada no calendário
+  const [appointments, setAppointments] = useState([]); // Agendamentos
   const [selectedAppointment, setSelectedAppointment] = useState(null); // Dados do agendamento selecionado
   const [isModalVisible, setModalVisible] = useState(false); // Controle do modal
 
-  const appointments = [
-    {
-      id: "1",
-      date: "2024-11-20",
-      time: "08:00",
-      client: "João Silva",
-      service: "Corte de Cabelo",
-      price: "R$ 50,00",
-    },
-    {
-      id: "2",
-      date: "2024-11-20",
-      time: "13:00",
-      client: "André Oliveira",
-      service: "Barba e Corte",
-      price: "R$ 70,00",
-    },
-    {
-      id: "3",
-      date: "2024-11-21",
-      time: "18:00",
-      client: "Pedro Santos",
-      service: "Corte de Cabelo",
-      price: "R$ 60,00",
-    },
-  ];
+  useEffect(() => {
+    const unsubscribeAppointments = onSnapshot(
+      collection(db, "Agendamentos"),
+      (querySnapshot) => {
+        const fetchedAppointments = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          date: doc.data().dataCriacao.toDate().toISOString().split("T")[0], // Converte timestamp para string de data
+          time: doc.data().horario,
+          client: doc.data().barbearia,
+          service: doc.data().servico,
+          price: doc.data().valor,
+          ...doc.data(),
+        }));
+        setAppointments(fetchedAppointments);
+        console.log("Dados recuperados:", fetchedAppointments);
+        setAppointments(fetchedAppointments);
+      }
+    );
+
+    return () => {
+      unsubscribeAppointments();
+    };
+  }, []);
 
   const appointmentsByDate = appointments.filter(
     (appointment) => appointment.date === selectedDate
@@ -66,6 +66,7 @@ export default function Agenda({ navigation }) {
         markedDates={{
           [selectedDate]: { selected: true, selectedColor: "#D0AC4B" },
         }}
+        minDate={new Date().toISOString().split("T")[0]} // Permite hoje e desativa dias anteriores
         theme={{
           todayTextColor: "#D0AC4B",
           selectedDayBackgroundColor: "#D0AC4B",
@@ -85,7 +86,7 @@ export default function Agenda({ navigation }) {
             >
               <Text style={styles.clientName}>{item.client}</Text>
               <Text style={styles.appointmentDateTime}>
-                {item.time} - {item.service}
+                {item.time} - {item.servico}
               </Text>
             </TouchableOpacity>
           )}
@@ -137,7 +138,8 @@ export default function Agenda({ navigation }) {
       )}
     </View>
   );
-};
+}
+
 
 const styles = StyleSheet.create({
   container: {
