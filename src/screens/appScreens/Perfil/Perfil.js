@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import { auth } from '../../../config/firebaseConfig';
 import { signOut } from 'firebase/auth';
+import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
+import { auth, db } from '../../../config/firebaseConfig';
 
 // Componente InfoBox para modularizar as caixas de informações
 const InfoBox = ({ icon, label, onPress }) => (
@@ -17,11 +18,9 @@ export default function Perfil({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState('');
 
-  const barbeariaInfo = {
-    nome: "Nome da Barbearia",
-    descricao: "A melhor barbearia da cidade, com serviços exclusivos para você.",
-    fotoPerfil: 'https://link-da-imagem-do-perfil.com', // Link da foto do perfil
-  };
+  const [nomeUser, setNomeUser] = useState('');
+  const [emailUser, setEmailUser] = useState('');
+  const [image, setImage] = useState('');
 
   const handleLogout = async () => {
     try {
@@ -33,9 +32,96 @@ export default function Perfil({ navigation }) {
     }
   };
 
-  // Função para abrir o modal com informações específicas
+  // Puxar dados do Firestore quando o usuário estiver autenticado
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const userDoc = doc(db, "CadastroBarbearia", user.uid);
+        const unsubscribe = onSnapshot(userDoc, (doc) => {
+          if (doc.exists()) {
+            const userData = doc.data();
+            setNomeUser(userData.nomebarbeariacadastro);
+            setEmailUser(userData.sobre);
+            setImage(userData.imageURL || 'https://default-profile-image.com'); // Use uma imagem padrão se não houver URL
+          } else {
+            console.log("No such document!");
+          }
+        });
+        return () => unsubscribe();
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+
+  const [enderecos, setEnderecos] = useState([]); // Inicializamos o estado
+
+  useEffect(() => {
+    const fetchEnderecos = async () => {
+      const user = auth.currentUser;
+
+      if (user) {
+        const q = query(
+          collection(db, 'CadastroEndereço'),
+          where('userId', '==', user.uid) // Filtrar pelo ID do usuário logado
+        );
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+          const enderecosData = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setEnderecos(enderecosData); // Atualizar estado com endereços filtrados
+        });
+
+        return () => unsubscribe();
+      }
+    };
+
+    fetchEnderecos();
+  }, []);
+
+  const [horarios, setHorarios] = useState([]); // Estado para armazenar os horários
+
+  // Buscar horários do Firestore
+  useEffect(() => {
+    const fetchHorarios = async () => {
+      const user = auth.currentUser;
+
+      if (user) {
+        const q = query(
+          collection(db, 'CadastroHorarios'), // Nome da coleção no Firestore
+          where('userId', '==', user.uid) // Filtrar pelos horários do usuário logado
+        );
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+          const horariosData = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setHorarios(horariosData); // Atualizar o estado com os horários
+        });
+
+        return () => unsubscribe();
+      }
+    };
+
+    fetchHorarios();
+  }, []);
+
+  // Função para abrir o modal com horários
   const handleModalOpen = (content) => {
-    setModalContent(content);
+    if (content === 'Horários') {
+      setModalContent(
+        horarios.length > 0
+          ? horarios.map((horario) => `${horario.dia}: ${horario.horaInicio} - ${horario.horaFim}`).join('\n')
+          : 'Nenhum horário cadastrado.'
+      );
+    } else {
+      setModalContent(content);
+    }
     setModalVisible(true);
   };
 
@@ -48,25 +134,32 @@ export default function Perfil({ navigation }) {
         </TouchableOpacity>
         <View style={styles.profileImageContainer}>
           <Image
-            source={{ uri: barbeariaInfo.fotoPerfil }}
+            source={{ uri: image }}
             style={styles.profileImage}
           />
           <TouchableOpacity style={styles.cameraIconContainer}>
             <Ionicons name="camera" size={35} color="#000" /> {/* Ícone centralizado com o tamanho adequado */}
           </TouchableOpacity>
         </View>
-        <Text style={styles.nome}>{barbeariaInfo.nome}</Text>
+        <Text style={styles.nome}>{nomeUser || 'Nome da Barbearia'}</Text>
         {/* Descrição */}
-        <Text style={styles.descricao}>{barbeariaInfo.descricao}</Text>
+        <Text style={styles.descricao}>{emailUser || 'Descrição do usuário'}</Text>
       </View>
 
       {/* Caixas de Informações */}
       <View style={styles.infoContainer}>
-        <InfoBox
-          icon={<Ionicons name="location-outline" size={24} color="#D0AC4B" />}
-          label="Localização"
-          onPress={() => handleModalOpen('Informações sobre a Localização')}
-        />
+        {enderecos.length > 0 ? (
+          enderecos.map((endereco) => (
+            <View key={endereco.id} style={styles.infoBox}>
+              <Ionicons name="location-outline" size={24} color="#D0AC4B" />
+              <Text style={styles.infoText}>
+                {endereco.rua}, {endereco.cidade}, {endereco.estado}
+              </Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.descricao}>Nenhum endereço encontrado para esta barbearia.</Text>
+        )}
         <InfoBox
           icon={<Ionicons name="star-outline" size={24} color="#D0AC4B" />}
           label="Avaliação"
@@ -75,22 +168,17 @@ export default function Perfil({ navigation }) {
         <InfoBox
           icon={<Ionicons name="time-outline" size={24} color="#D0AC4B" />}
           label="Horário"
-          onPress={() => handleModalOpen('Informações sobre o Horário de Funcionamento')}
+          onPress={() => handleModalOpen('Horários')}
         />
+
         <InfoBox
           icon={<FontAwesome5 name="cut" size={24} color="#D0AC4B" />}
           label="Serviços"
           onPress={() => handleModalOpen('Lista de Serviços oferecidos pela barbearia')}
         />
-        {/* Nova categoria: Fotos */}
-        <InfoBox
-          icon={<Ionicons name="image-outline" size={24} color="#D0AC4B" />}
-          label="Fotos"
-          onPress={() => handleModalOpen('Galeria de fotos da barbearia')}
-        />
       </View>
 
-      {/* Botão de Agendamento */}
+      {/* Botão de Logout */}
       <TouchableOpacity
         style={styles.botaoAgendar}
         onPress={handleLogout}
@@ -150,8 +238,8 @@ const styles = StyleSheet.create({
   },
   cameraIconContainer: {
     position: 'absolute',
-    top: '30%',  // Centraliza verticalmente sobre a imagem
-    left: '50%', // Centraliza horizontalmente sobre a imagem
+    top: '40%',  // Centraliza verticalmente sobre a imagem
+    left: '40%', // Centraliza horizontalmente sobre a imagem
     transform: [{ translateX: -18 }, { translateY: -18 }], // Ajusta para o centro exato
     backgroundColor: '#FFF',
     padding: 12,  // Ajusta o tamanho do círculo

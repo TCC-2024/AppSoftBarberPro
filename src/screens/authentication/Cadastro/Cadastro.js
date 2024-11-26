@@ -82,7 +82,7 @@ export default function Cadastro({ navigation }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={{ padding: 20 }}>
         <View style={{ alignItems: 'center', marginTop: 50 }}>
-          <Text style={{ fontSize: 30, color: '#000', fontFamily: Fonts["poppins-bold"], marginVertical: 30 }}>Criar Conta</Text>
+          <Text style={{ fontSize: 30, color: '#D0AC4B', fontFamily: Fonts["poppins-bold"], marginVertical: 30 }}>Criar Conta</Text>
           <Text style={{ fontFamily: Fonts["poppins-regular"], marginTop: -20, fontSize: 15, maxWidth: "80%", textAlign: 'center', color: '#848484' }}>Crie sua conta, para aproveitar ao maxímo.</Text>
         </View>
         <View style={{ marginVertical: 30 }}>
@@ -166,21 +166,21 @@ export default function Cadastro({ navigation }) {
         </View>
         <View style={styles.checkboxContainer}>
           <TouchableOpacity onPress={handleCheckboxChange} style={styles.checkbox}>
-            {isChecked && <AntDesign name="checksquare" size={20} color="black" />}
-            {!isChecked && <AntDesign name="checksquareo" size={20} color="black" />}
+            {isChecked && <AntDesign name="checksquare" size={20} color="#D0AC4B" />}
+            {!isChecked && <AntDesign name="checksquareo" size={20} color="#D0AC4B" />}
           </TouchableOpacity>
           <Text style={styles.checkboxLabel}>Concordo com os Termos & Condições</Text>
         </View>
         <TouchableOpacity onPress={handleCadastro} style={{
           padding: 12,
-          backgroundColor: '#000',
+          backgroundColor: '#D0AC4B',
           marginVertical: 30,
           borderRadius: 10,
         }}>
           <Text style={{ fontFamily: Fonts["poppins-bold"], color: '#fff', textAlign: 'center', fontSize: 20 }}>Continuar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={{ padding: 10 }} onPress={() => navigation.navigate("Login")}>
-          <Text style={{ fontFamily: Fonts["poppins-semiBold"], color: '#000', textAlign: 'center', fontSize: 14 }}>Já tem uma conta? Entrar</Text>
+          <Text style={{ fontFamily: Fonts["poppins-semiBold"], color: '#D0AC4B', textAlign: 'center', fontSize: 14 }}>Já tem uma conta? Entrar</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
