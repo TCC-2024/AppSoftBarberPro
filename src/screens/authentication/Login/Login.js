@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth } from '../../../config/firebaseConfig';
 import Toast from 'react-native-toast-message';
 import Fonts from '../../../utils/Fonts';
@@ -12,11 +12,19 @@ export default function Login({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
+    if (!email || !senha) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro',
+        text2: 'Preencha todos os campos antes de continuar.',
+      });
+      return;
+    }
+
     signInWithEmailAndPassword(auth, email, senha)
       .then((userCredential) => {
         const user = userCredential.user;
         if (user.emailVerified) {
-          console.log(user);
           setEmail("");
           setSenha("");
           Toast.show({
@@ -26,29 +34,65 @@ export default function Login({ navigation }) {
           });
           navigation.navigate("RoutesTab");
         } else {
+          auth.signOut(); // Desloga o usuário
           Toast.show({
             type: 'error',
             text1: 'Erro',
-            text2: 'Seu e-mail ainda não foi verificado. Por favor, verifique seu e-mail antes de fazer login.',
+            text2: 'Seu e-mail não foi verificado. Reenviamos o e-mail de verificação.',
           });
+          handleResendVerification();
         }
       })
       .catch((error) => {
-        const errorMessage = error.message;
+        const friendlyMessage = getFriendlyErrorMessage(error.code);
         Toast.show({
           type: 'error',
           text1: 'Erro',
-          text2: errorMessage,
+          text2: friendlyMessage,
         });
       });
+  };
+
+  const handleResendVerification = () => {
+    if (auth.currentUser) {
+      sendEmailVerification(auth.currentUser)
+        .then(() => {
+          Toast.show({
+            type: 'success',
+            text1: 'Email enviado',
+            text2: 'Verifique sua caixa de entrada para confirmar seu e-mail.',
+          });
+        })
+        .catch(() => {
+          Toast.show({
+            type: 'error',
+            text1: 'Erro',
+            text2: 'Não foi possível reenviar o e-mail de verificação.',
+          });
+        });
+    }
+  };
+
+  const getFriendlyErrorMessage = (errorCode) => {
+    const errorMessages = {
+      "auth/user-not-found": "Usuário não encontrado.",
+      "auth/wrong-password": "Senha incorreta.",
+      "auth/invalid-email": "Formato de e-mail inválido.",
+      "auth/too-many-requests": "Muitas tentativas de login. Tente novamente mais tarde.",
+    };
+    return errorMessages[errorCode] || "Ocorreu um erro inesperado. Tente novamente.";
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={{ padding: 20 }}>
         <View style={{ alignItems: 'center', marginTop: 50 }}>
-          <Text style={{ fontSize: 30, color: '#d0ac4b', fontFamily: Fonts["poppins-bold"], marginVertical: 30 }}>Iniciar Sessão</Text>
-          <Text style={{ fontFamily: Fonts["poppins-regular"], marginTop: -20, fontSize: 15, maxWidth: "80%", textAlign: 'center', color: '#848484' }}>Seja Bem vindo novamente!</Text>
+          <Text style={{ fontSize: 30, color: '#d0ac4b', fontFamily: Fonts["poppins-bold"], marginVertical: 30 }}>
+            Iniciar Sessão
+          </Text>
+          <Text style={{ fontFamily: Fonts["poppins-regular"], marginTop: -20, fontSize: 15, maxWidth: "80%", textAlign: 'center', color: '#848484' }}>
+            Seja bem-vindo novamente!
+          </Text>
         </View>
         <View style={{ marginVertical: 30 }}>
           <TextInput
@@ -112,7 +156,9 @@ export default function Login({ navigation }) {
           <Text style={{ fontFamily: Fonts["poppins-bold"], color: '#fff', textAlign: 'center', fontSize: 20 }}>Entrar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={{ padding: 10 }} onPress={() => navigation.navigate("Cadastro")}>
-          <Text style={{ fontFamily: Fonts["poppins-semiBold"], color: '#000', textAlign: 'center', fontSize: 14 }}>Não tem uma conta? <Text style={{ textDecorationLine: 'underline', color: '#d0ac4b' }}>Cadastre-se</Text></Text>
+          <Text style={{ fontFamily: Fonts["poppins-semiBold"], color: '#000', textAlign: 'center', fontSize: 14 }}>
+            Não tem uma conta? <Text style={{ textDecorationLine: 'underline', color: '#d0ac4b' }}>Cadastre-se</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -26,7 +26,7 @@ export default function Agenda({ navigation }) {
           id: doc.id,
           date: doc.data().dataCriacao.toDate().toISOString().split("T")[0], // Converte timestamp para string de data
           time: doc.data().horario,
-          client: doc.data().barbearia,
+          client: doc.data().userName,
           service: doc.data().servico,
           price: doc.data().valor,
           ...doc.data(),

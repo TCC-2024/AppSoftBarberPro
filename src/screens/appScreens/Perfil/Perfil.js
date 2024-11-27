@@ -21,7 +21,11 @@ export default function Perfil({ navigation }) {
   const [nomeUser, setNomeUser] = useState('');
   const [emailUser, setEmailUser] = useState('');
   const [image, setImage] = useState('');
+  const [servicos, setServicos] = useState([]);
+  const [enderecos, setEnderecos] = useState([]); // Inicializamos o estado
+  const [horarios, setHorarios] = useState([]); // Estado para armazenar os horários
 
+  // Função de logout
   const handleLogout = async () => {
     try {
       await signOut(auth); // Desconecta o usuário
@@ -55,9 +59,7 @@ export default function Perfil({ navigation }) {
     fetchUserData();
   }, []);
 
-
-  const [enderecos, setEnderecos] = useState([]); // Inicializamos o estado
-
+  // Puxar endereços, horários, avaliações e serviços do Firestore
   useEffect(() => {
     const fetchEnderecos = async () => {
       const user = auth.currentUser;
@@ -80,13 +82,6 @@ export default function Perfil({ navigation }) {
       }
     };
 
-    fetchEnderecos();
-  }, []);
-
-  const [horarios, setHorarios] = useState([]); // Estado para armazenar os horários
-
-  // Buscar horários do Firestore
-  useEffect(() => {
     const fetchHorarios = async () => {
       const user = auth.currentUser;
 
@@ -108,12 +103,51 @@ export default function Perfil({ navigation }) {
       }
     };
 
+    const fetchServicos = async () => {
+      const user = auth.currentUser;
+
+      if (user) {
+        const q = query(
+          collection(db, 'CadastroServiços'),
+          where('userId', '==', user.uid)
+        );
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+          if (!querySnapshot.empty) {
+            const servicosData = querySnapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            console.log("Serviços encontrados:", servicosData); // Log dos serviços encontrados
+            setServicos(servicosData);
+          } else {
+            console.log("Nenhum serviço encontrado.");
+            setServicos([]); // Atualizar para vazio caso não encontre dados
+          }
+        });
+
+        return () => unsubscribe();
+      }
+    };
+
+    fetchEnderecos();
     fetchHorarios();
+    fetchServicos();
   }, []);
 
-  // Função para abrir o modal com horários
+  // Função de abertura de modal
   const handleModalOpen = (content) => {
-    if (content === 'Horários') {
+    if (content === 'Serviços') {
+      if (Array.isArray(servicos) && servicos.length > 0) {
+        // Mapear os serviços e formatar a exibição
+        const servicosTexto = servicos.map((servico, index) => {
+          return `Serviço: ${servico.servico}\nDuração: ${servico.duracao}\nPreço: R$ ${servico.valor}\n\n`;
+        }).join('');
+        setModalContent(servicosTexto);
+      } else {
+        setModalContent('Nenhum serviço cadastrado.');
+      }
+    } else if (content === 'Horários') {
       setModalContent(
         horarios.length > 0
           ? horarios.map((horario) => `${horario.dia}: ${horario.horaInicio} - ${horario.horaFim}`).join('\n')
@@ -124,6 +158,9 @@ export default function Perfil({ navigation }) {
     }
     setModalVisible(true);
   };
+
+
+
 
   return (
     <ScrollView style={styles.container}>
@@ -161,11 +198,6 @@ export default function Perfil({ navigation }) {
           <Text style={styles.descricao}>Nenhum endereço encontrado para esta barbearia.</Text>
         )}
         <InfoBox
-          icon={<Ionicons name="star-outline" size={24} color="#D0AC4B" />}
-          label="Avaliação"
-          onPress={() => handleModalOpen('Informações sobre Avaliação')}
-        />
-        <InfoBox
           icon={<Ionicons name="time-outline" size={24} color="#D0AC4B" />}
           label="Horário"
           onPress={() => handleModalOpen('Horários')}
@@ -174,8 +206,9 @@ export default function Perfil({ navigation }) {
         <InfoBox
           icon={<FontAwesome5 name="cut" size={24} color="#D0AC4B" />}
           label="Serviços"
-          onPress={() => handleModalOpen('Lista de Serviços oferecidos pela barbearia')}
+          onPress={() => handleModalOpen('Serviços')}
         />
+
       </View>
 
       {/* Botão de Logout */}
